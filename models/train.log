@@ -1,0 +1,73 @@
+{'train': 1034, 'val': 133, 'test': 128}
+head epoch 1/3 loss 0.774 val_acc 0.789 (24s)
+head epoch 2/3 loss 0.657 val_acc 0.842 (22s)
+head epoch 3/3 loss 0.547 val_acc 0.865 (23s)
+full epoch 1/10 loss 0.489 val_acc 0.895 (40s)
+full epoch 2/10 loss 0.378 val_acc 0.910 (39s)
+full epoch 3/10 loss 0.317 val_acc 0.970 (40s)
+full epoch 4/10 loss 0.295 val_acc 0.947 (42s)
+full epoch 5/10 loss 0.293 val_acc 0.962 (39s)
+full epoch 6/10 loss 0.283 val_acc 0.962 (39s)
+full epoch 7/10 loss 0.267 val_acc 0.970 (39s)
+full epoch 8/10 loss 0.265 val_acc 0.962 (39s)
+full epoch 9/10 loss 0.255 val_acc 0.962 (39s)
+full epoch 10/10 loss 0.249 val_acc 0.962 (35s)
+{
+  "model": "MobileNetV3-Small, ImageNet init, fine-tuned",
+  "classes": [
+    "angular_leaf_spot",
+    "bean_rust",
+    "healthy"
+  ],
+  "input": {
+    "size": 224,
+    "resize_short_side": 256,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "selected": "full epoch 3/10 loss 0.317 val_acc 0.970 (40s)",
+  "validation_accuracy": 0.9699,
+  "test_accuracy": 0.9219,
+  "test_confusion_matrix": [
+    [
+      40,
+      3,
+      0
+    ],
+    [
+      5,
+      38,
+      0
+    ],
+    [
+      0,
+      2,
+      40
+    ]
+  ],
+  "test_per_class": {
+    "angular_leaf_spot": {
+      "precision": 0.889,
+      "recall": 0.93,
+      "support": 43
+    },
+    "bean_rust": {
+      "precision": 0.884,
+      "recall": 0.884,
+      "support": 43
+    },
+    "healthy": {
+      "precision": 1.0,
+      "recall": 0.952,
+      "support": 42
+    }
+  }
+}

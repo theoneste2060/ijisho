@@ -1,0 +1,59 @@
+{
+  "model": "MobileNetV3-Small, ImageNet init, fine-tuned",
+  "classes": [
+    "angular_leaf_spot",
+    "bean_rust",
+    "healthy"
+  ],
+  "input": {
+    "size": 224,
+    "resize_short_side": 256,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "selected": "full epoch 3/10 loss 0.317 val_acc 0.970 (40s)",
+  "validation_accuracy": 0.9699,
+  "test_accuracy": 0.9219,
+  "test_confusion_matrix": [
+    [
+      40,
+      3,
+      0
+    ],
+    [
+      5,
+      38,
+      0
+    ],
+    [
+      0,
+      2,
+      40
+    ]
+  ],
+  "test_per_class": {
+    "angular_leaf_spot": {
+      "precision": 0.889,
+      "recall": 0.93,
+      "support": 43
+    },
+    "bean_rust": {
+      "precision": 0.884,
+      "recall": 0.884,
+      "support": 43
+    },
+    "healthy": {
+      "precision": 1.0,
+      "recall": 0.952,
+      "support": 42
+    }
+  }
+}

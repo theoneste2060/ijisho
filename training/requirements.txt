@@ -1,0 +1,9 @@
+# CPU-only PyTorch: pip install -r training/requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
+torch
+torchvision
+onnx
+onnxscript
+onnxruntime
+pyarrow
+pillow
+numpy

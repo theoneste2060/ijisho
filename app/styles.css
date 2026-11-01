@@ -1,0 +1,68 @@
+/* Ijisho: phone-first, system fonts (nothing to download), brand colours from theoneste.dev. */
+:root {
+  --ink: #0B1F33;
+  --accent: #22C55E;
+  --accent-btn: #15803D;
+  --muted: #5F6B76;
+  --line: #D9DDE2;
+  --tint: #F3F5F7;
+  --warn: #B45309;
+  --warn-bg: #FFF7ED;
+  --ok-bg: #F0FDF4;
+  --unsure-bg: #F3F5F7;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: #fff;
+}
+h1, h2, h3 { margin: 0; line-height: 1.2; }
+.top {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .8rem 1rem; background: var(--ink); color: #fff;
+}
+.brand { display: flex; align-items: center; gap: .7rem; }
+.brand img { border-radius: 50%; }
+.brand h1 { font-size: 1.25rem; }
+.status { margin: 0; font-size: .8rem; color: #A9B8C8; }
+.status.ok { color: #4ADE80; }
+.lang {
+  background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.5); padding: .45rem .8rem;
+  font-family: inherit; font-weight: 600; font-size: .85rem; line-height: 1; cursor: pointer;
+}
+main { flex: 1; width: 100%; max-width: 34rem; margin: 0 auto; padding: 1.5rem 1rem 2rem; }
+.tagline { font-size: 1.25rem; font-weight: 600; margin: .5rem 0 1.5rem; }
+.actions { display: grid; gap: .75rem; }
+.btn {
+  display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 10px 20px;
+  font-family: inherit; font-weight: 700; font-size: 1rem; line-height: 1.2; text-transform: uppercase; letter-spacing: .03em; cursor: pointer; border: 2px solid transparent;
+}
+.btn.primary { background: var(--accent-btn); color: #fff; }
+.btn.primary:hover { background: #166534; }
+.btn.outline { background: #fff; color: var(--ink); border-color: var(--ink); }
+.btn.outline:hover { background: var(--tint); }
+.btn.wide { width: 100%; margin-top: 1rem; }
+.btn:focus-within, .btn:focus-visible, .lang:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tips { color: var(--muted); font-size: .95rem; margin-top: 1rem; }
+.result img { display: block; width: 100%; max-height: 18rem; object-fit: cover; background: var(--tint); }
+.card { border: 1px solid var(--line); border-top: 4px solid var(--line); padding: 1.1rem 1rem; }
+.card.warn { border-top-color: var(--warn); background: var(--warn-bg); }
+.card.ok { border-top-color: var(--accent); background: var(--ok-bg); }
+.card.unsure { border-top-color: var(--muted); background: var(--unsure-bg); }
+.card h2 { font-size: 1.4rem; }
+.card.warn h2 { color: var(--warn); }
+.card.ok h2 { color: #166534; }
+.card h3 { font-size: 1rem; margin-top: 1rem; }
+.card ul { margin: .5rem 0 0; padding-left: 1.2rem; }
+.card li + li { margin-top: .4rem; }
+.checking { margin: 0; font-weight: 600; }
+.meter { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: .5rem; font-size: .9rem; color: var(--muted); }
+.meter i { display: block; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.meter em { display: block; height: 100%; background: var(--ink); }
+footer { padding: 1.2rem 1rem 1.5rem; background: var(--tint); font-size: .875rem; color: var(--muted); text-align: center; }
+footer p { max-width: 34rem; margin: .3rem auto; }
+footer a { color: var(--ink); }
+.fine { font-size: .8rem; }
+@media (prefers-reduced-motion: no-preference) { .card { animation: in .3s ease-out; } }
+@keyframes in { from { opacity: 0; transform: translateY(6px); } }

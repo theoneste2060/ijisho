@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ijisho · Bean leaf disease check</title>
+  <meta name="description" content="Check a bean leaf for angular leaf spot or bean rust with your phone camera. Free, open source and works offline.">
+  <meta name="theme-color" content="#0B1F33">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="" width="36" height="36">
+      <div>
+        <h1 data-t="title">Ijisho</h1>
+        <p class="status" id="status" data-t="loading">Getting ready…</p>
+      </div>
+    </div>
+    <button class="lang" id="lang" type="button" data-t="lang">Ikinyarwanda</button>
+  </header>
+
+  <main>
+    <section class="intro" id="intro">
+      <p class="tagline" data-t="tagline">Check a bean leaf for disease. Works offline.</p>
+      <div class="actions">
+        <label class="btn primary">
+          <input id="camera" type="file" accept="image/*" capture="environment" hidden>
+          <span data-t="take">Take a photo</span>
+        </label>
+        <label class="btn outline">
+          <input id="gallery" type="file" accept="image/*" hidden>
+          <span data-t="upload">Choose a photo</span>
+        </label>
+      </div>
+      <p class="tips" data-t="tips">One bean leaf, in daylight, filling most of the photo.</p>
+    </section>
+
+    <section class="result" id="result" hidden aria-live="polite">
+      <img id="preview" alt="">
+      <div class="card" id="card">
+        <p class="checking" id="checking" data-t="checking">Checking the leaf…</p>
+        <div id="answer" hidden>
+          <h2 id="name"></h2>
+          <p id="what"></p>
+          <div class="meter"><span data-t="confidence">Confidence</span> <b id="pct"></b><i><em id="bar"></em></i></div>
+          <h3 data-t="whatToDo">What to do</h3>
+          <ul id="advice"></ul>
+        </div>
+      </div>
+      <button class="btn outline wide" id="again" type="button" data-t="again">Check another leaf</button>
+    </section>
+  </main>
+
+  <footer>
+    <p data-t="disclaimer">Ijisho helps you spot problems early. It does not replace an agronomist.</p>
+    <p class="fine"><span data-t="credits">Model trained on field photos from the Makerere AI Lab and NaCRRI (MIT licence).</span> Open source: <a href="https://github.com/theoneste2060/ijisho">github.com/theoneste2060/ijisho</a></p>
+  </footer>
+
+  <script src="vendor/ort.wasm.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

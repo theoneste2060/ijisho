@@ -1,0 +1,16 @@
+{
+  "fp32": {
+    "test_accuracy": 0.9219,
+    "size_mb": 6.09
+  },
+  "int8": {
+    "test_accuracy": 0.3359,
+    "size_mb": 1.87
+  },
+  "shipped": "fp32",
+  "classes": [
+    "angular_leaf_spot",
+    "bean_rust",
+    "healthy"
+  ]
+}
