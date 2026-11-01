@@ -10,3 +10,6 @@ data/collect.log
 .devtoken
 models/**/*.onnx
 models/**/*.pt
+api/
+.dev.vars
+.wrangler/
