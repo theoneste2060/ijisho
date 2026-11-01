@@ -46,29 +46,37 @@ food and a key protein source across East Africa.
 
 Measured on held-out **test photos** never used for training or for choosing the model: the dataset's 128 bean
 test photos plus 88 "not a bean leaf" photos (15% of each Wikimedia search, set aside before training).
-The validation split picked the best epoch.
+The validation split picked the best epoch. Browser numbers use the app's own code (`window.ijisho.classify`).
 
-| | 3-class model (v1) | 4-class model (current) |
-|---|---|---|
-| Bean disease accuracy, same 128 photos | 92.2% (browser 90.6%) | **93.8%** (browser 93.8%) |
-| Real bean leaves wrongly called "not a bean leaf" | n/a | **0 / 128** |
-| Non-bean test photos caught | none (no such answer) | **88 / 88** |
-| Other photos from different sources (people, screenshots, graphics) | n/a | 7 / 7 caught |
-| Model size | 6.1 MB | 6.1 MB (8-bit version rejected again: accuracy collapsed) |
+| | v1 (3 classes) | v2 (+ not a bean leaf) | **v3 (current)** |
+|---|---|---|---|
+| Bean disease accuracy, same 128 photos (browser) | 90.6% | 93.8% | **94.5%** |
+| Real bean leaves wrongly called "not a bean leaf" | n/a | 0 / 128 | **0 / 128** |
+| Non-bean test photos caught | none | 88 / 88 | **88 / 88** |
+| Zoomed-out bean leaves (whole leaf / plant from further away) | n/a | 60% right, 26 / 128 rejected | **87.5% right, 0 / 128 rejected** |
+| Model size | 6.1 MB | 6.1 MB | 6.1 MB |
 
-Test confusion matrix, current model (rows = true class, columns = predicted):
+**Whole leaves and plants (v3).** Bean leaves grow in threes and farmers often photograph the whole leaf or the
+plant, while the dataset is mostly close-ups, so v2 often answered "not a bean leaf" for such photos. v3 fixes
+this two ways: training now also shows some bean photos shrunk onto soil, grass and weed photos (keeping their
+label), and the app takes a second, zoomed-in look (centre and four corners) whenever the first answer is
+"not a bean leaf". The zoomed-out test set is built the same way from held-out photos and backgrounds
+(`training/eval_views.py`), so it is a stand-in for real whole-leaf field photos: expect real photos to score
+somewhat lower.
+
+Current model, test confusion matrix (one look, rows = true class, columns = predicted):
 
 | | angular leaf spot | bean rust | healthy | not a bean leaf |
 |---|---|---|---|---|
-| **angular leaf spot** | 40 | 3 | 0 | 0 |
-| **bean rust** | 4 | 39 | 0 | 0 |
+| **angular leaf spot** | 41 | 2 | 0 | 0 |
+| **bean rust** | 5 | 37 | 0 | 1 |
 | **healthy** | 0 | 1 | 41 | 0 |
 | **not a bean leaf** | 0 | 0 | 0 | 88 |
 
+(The one bean rust leaf rejected on the first look is recovered by the zoomed-in second look.)
 The "not a bean leaf" test photos come from the same Wikimedia searches as the training ones, so 88/88 is
-optimistic: expect some real-world photos to slip through. Below 70% confidence the app still answers
-"not sure". Speed: about 35 ms per photo on a laptop CPU; first download about 21 MB, then offline.
-Training: about 15 minutes on a 4-core laptop CPU (no GPU).
+optimistic. Below 70% confidence the app answers "not sure". Speed on a laptop CPU: about 45 ms per photo,
+about 180 ms when the second look runs; first download about 21 MB, then offline.
 
 ## Run it
 

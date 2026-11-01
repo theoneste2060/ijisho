@@ -39,16 +39,15 @@ async function loadModel() {
 }
 
 // Same steps as training: short side to 256, centre crop 224, ImageNet normalisation.
-async function toTensor(file) {
-  const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
-  const scale = 256 / Math.min(bmp.width, bmp.height);
-  const w = Math.round(bmp.width * scale);
-  const h = Math.round(bmp.height * scale);
+// (sx, sy, sw, sh) picks a part of the photo; by default the whole photo.
+function toTensor(bmp, sx = 0, sy = 0, sw = bmp.width, sh = bmp.height) {
+  const scale = 256 / Math.min(sw, sh);
+  const w = Math.round(sw * scale);
+  const h = Math.round(sh * scale);
   const canvas = new OffscreenCanvas(224, 224);
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(bmp, (224 - w) / 2, (224 - h) / 2, w, h);
-  bmp.close();
+  ctx.drawImage(bmp, sx, sy, sw, sh, (224 - w) / 2, (224 - h) / 2, w, h);
   const { data } = ctx.getImageData(0, 0, 224, 224);
   const out = new Float32Array(3 * 224 * 224);
   for (let i = 0; i < 224 * 224; i++) {
@@ -64,12 +63,44 @@ function softmax(logits) {
   return e.map((v) => v / s);
 }
 
+async function probsOf(bmp, ...region) {
+  const out = await session.run({ image: toTensor(bmp, ...region) });
+  return softmax(Array.from(out.logits.data));
+}
+
+const NOT_BEAN = CLASSES.indexOf('not_bean');
+
+// Parts of the photo to look at again: centre 70% and four overlapping corners at 60% of the short side.
+function zoomRegions(w, h) {
+  const out = [];
+  for (const [frac, spots] of [[0.7, [[0.5, 0.5]]], [0.6, [[0, 0], [1, 0], [0, 1], [1, 1]]]]) {
+    const s = frac * Math.min(w, h);
+    for (const [fx, fy] of spots) out.push([(w - s) * fx, (h - s) * fy, s, s]);
+  }
+  return out;
+}
+
+// Look at the whole photo. Only if that says "not a bean leaf" (for example a whole trifoliate leaf or a plant
+// photographed from further away), zoom into five parts; if one clearly shows a bean leaf, answer from it.
 export async function classify(file) {
-  const input = await toTensor(file);
-  const out = await session.run({ image: input });
-  const probs = softmax(Array.from(out.logits.data));
-  const best = probs.indexOf(Math.max(...probs));
-  return { cls: CLASSES[best], p: probs[best], probs };
+  const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+  try {
+    const probs = await probsOf(bmp);
+    let best = probs.indexOf(Math.max(...probs));
+    let result = { cls: CLASSES[best], p: probs[best], probs, zoomed: false };
+    if (best === NOT_BEAN) {
+      for (const region of zoomRegions(bmp.width, bmp.height)) {
+        const q = await probsOf(bmp, ...region);
+        const c = q.indexOf(Math.max(...q));
+        if (c !== NOT_BEAN && q[c] >= CONFIDENT && q[NOT_BEAN] < 0.15 && (!result.zoomed || q[c] > result.p)) {
+          result = { cls: CLASSES[c], p: q[c], probs: q, zoomed: true };
+        }
+      }
+    }
+    return result;
+  } finally {
+    bmp.close();
+  }
 }
 
 // ---------- UI ----------

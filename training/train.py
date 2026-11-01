@@ -62,16 +62,47 @@ def load_all(name):
     return bi + ni, bl + nl
 
 
+# Farmers often photograph a whole trifoliate leaf or a plant from a distance, while the dataset is mostly
+# close-ups. "Zoom out": during training, some bean photos are shrunk and placed on soil/grass/weed photos
+# from the training split only, keeping their label, so the model learns that a small bean leaf is still a bean leaf.
+BACKGROUND_QUERIES = ["soil field Africa", "lawn grass", "weeds field"]
+ZOOM_OUT_P = 0.35
+
+
+def load_backgrounds():
+    with open(NEG / "attribution.csv") as f:
+        rows = [r for r in csv.DictReader(f) if r["split"] == "train" and r["query"] in BACKGROUND_QUERIES]
+    out = []
+    for r in rows:
+        im = Image.open(NEG / r["file"]).convert("RGB")
+        im.thumbnail((640, 640))
+        out.append(im)
+    return out
+
+
+def zoom_out(img, backgrounds):
+    bg = random.choice(backgrounds)
+    side = 640
+    canvas = bg.resize((side, side))
+    f = random.uniform(0.35, 0.7)
+    leaf = img.resize((round(side * f), round(side * f)))
+    canvas.paste(leaf, (random.randint(0, side - leaf.width), random.randint(0, side - leaf.height)))
+    return canvas
+
+
 class Beans(Dataset):
-    def __init__(self, split, tf):
+    def __init__(self, split, tf, augment_zoom_out=False):
         self.images, self.labels = load_all(split)
         self.tf = tf
+        self.backgrounds = load_backgrounds() if augment_zoom_out else []
 
     def __len__(self):
         return len(self.labels)
 
     def __getitem__(self, i):
         img = Image.open(io.BytesIO(self.images[i])).convert("RGB")
+        if self.backgrounds and self.labels[i] != NOT_BEAN and random.random() < ZOOM_OUT_P:
+            img = zoom_out(img, self.backgrounds)
         return self.tf(img), self.labels[i]
 
 
@@ -152,7 +183,7 @@ def run_epochs(model, params, loaders, epochs, lr, log, best):
 def main():
     OUT.mkdir(exist_ok=True)
     loaders = {
-        "train": DataLoader(Beans("train", train_tf), batch_size=32, shuffle=True, num_workers=0),
+        "train": DataLoader(Beans("train", train_tf, augment_zoom_out=True), batch_size=32, shuffle=True, num_workers=0),
         "val": DataLoader(Beans("validation", eval_tf), batch_size=64, num_workers=0),
         "test": DataLoader(Beans("test", eval_tf), batch_size=64, num_workers=0),
     }

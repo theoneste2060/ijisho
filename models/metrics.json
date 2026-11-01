@@ -20,11 +20,11 @@
       0.225
     ]
   },
-  "selected": "full epoch 4/10 loss 0.329 val_acc 0.982 (65s)",
+  "selected": "full epoch 8/10 loss 0.353 val_acc 0.982 (66s)",
   "validation_accuracy": 0.9819,
-  "test_accuracy_all": 0.963,
-  "test_bean_accuracy": 0.9375,
-  "test_bean_wrongly_rejected": 0,
+  "test_accuracy_all": 0.9583,
+  "test_bean_accuracy": 0.9297,
+  "test_bean_wrongly_rejected": 1,
   "test_not_bean_caught": 1.0,
   "test_counts": {
     "bean": 128,
@@ -32,16 +32,16 @@
   },
   "test_confusion_matrix": [
     [
-      40,
-      3,
+      41,
+      2,
       0,
       0
     ],
     [
-      4,
-      39,
+      5,
+      37,
       0,
-      0
+      1
     ],
     [
       0,
@@ -58,13 +58,13 @@
   ],
   "test_per_class": {
     "angular_leaf_spot": {
-      "precision": 0.909,
-      "recall": 0.93,
+      "precision": 0.891,
+      "recall": 0.953,
       "support": 43
     },
     "bean_rust": {
-      "precision": 0.907,
-      "recall": 0.907,
+      "precision": 0.925,
+      "recall": 0.86,
       "support": 43
     },
     "healthy": {
@@ -73,7 +73,7 @@
       "support": 42
     },
     "not_bean": {
-      "precision": 1.0,
+      "precision": 0.989,
       "recall": 1.0,
       "support": 88
     }

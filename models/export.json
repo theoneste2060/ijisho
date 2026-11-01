@@ -1,10 +1,10 @@
 {
   "fp32": {
-    "test_accuracy": 0.963,
+    "test_accuracy": 0.9583,
     "size_mb": 6.1
   },
   "int8": {
-    "test_accuracy": 0.4167,
+    "test_accuracy": 0.4074,
     "size_mb": 1.87
   },
   "shipped": "fp32",
