@@ -70,18 +70,17 @@ footer a { color: var(--ink); }
 .ask { margin-top: 1rem; padding: 1.1rem 1rem; border: 1px solid var(--line); }
 .ask h3 { font-size: 1.05rem; }
 .ask p { margin: .4rem 0 .8rem; color: var(--muted); font-size: .95rem; }
-.ask .btn.wide { margin-top: .6rem; }
-.ask #share { margin-top: 0; }
+.ask #share { margin-top: .75rem; }
 .note { font-size: .875rem; color: var(--muted); margin: .5rem 0 0; }
 .note.err { color: #B91C1C; }
-.linkbtn {
-  background: none; border: 0; padding: .4rem 0; margin-top: .6rem; cursor: pointer;
-  font-family: inherit; font-size: .9rem; font-weight: 600; color: var(--ink); text-decoration: underline; text-underline-offset: .2em;
-}
-.saved { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1rem; margin-top: .6rem; font-size: .9rem; color: var(--muted); }
-.saved .linkbtn { margin-top: 0; }
-.agro-form { display: grid; gap: .75rem; margin-top: .8rem; padding-top: .8rem; border-top: 1px solid var(--line); }
-.agro-form label { display: grid; gap: .3rem; font-size: .9rem; font-weight: 600; }
-.agro-form input { min-height: 44px; padding: 0 .75rem; border: 1px solid var(--line); font: inherit; font-weight: 400; }
-.agro-form input:focus { outline: 3px solid var(--accent); outline-offset: 0; border-color: var(--ink); }
-.agro-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.district { display: grid; gap: .3rem; font-weight: 600; font-size: .9rem; margin-bottom: .6rem; }
+.district select { min-height: 44px; padding: 0 .6rem; border: 1px solid var(--line); background: #fff; font: inherit; font-weight: 400; color: var(--ink); }
+.district select:focus-visible { outline: 3px solid var(--accent); outline-offset: 0; }
+.agros { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; gap: .5rem; }
+.agros:empty { display: none; }
+.agro-card { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .7rem .8rem; border: 1px solid var(--line); background: #fff; }
+.agro-card b { display: block; }
+.agro-card span { display: block; font-size: .85rem; color: var(--muted); }
+.agro-card .btn { min-height: 44px; padding: 8px 14px; font-size: .85rem; flex: none; }
+.ask .note a { color: var(--ink); font-weight: 600; }
+footer .fine a { color: var(--ink); }

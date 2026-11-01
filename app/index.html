@@ -53,34 +53,15 @@
       </div>
       <section class="ask" id="ask" hidden aria-labelledby="ask-h">
         <h3 id="ask-h" data-t="askTitle">Want a second opinion?</h3>
-        <p data-t="askText">Send this photo and result to your agronomist or farmer promoter.</p>
-        <button class="btn primary wide" id="share" type="button" data-t="ask">Ask an agronomist</button>
-        <a class="btn outline wide" id="waSaved" hidden target="_blank" rel="noopener"></a>
-        <p class="note" id="waSavedNote" hidden></p>
-        <a class="btn outline wide" id="waPartner" hidden target="_blank" rel="noopener"></a>
+        <p data-t="askText">Send this photo and result to an agronomist in your district on WhatsApp.</p>
+        <label class="district"><span data-t="districtLabel">Your district</span>
+          <select id="district"></select>
+        </label>
+        <p class="note" id="agroStatus" aria-live="polite" hidden></p>
+        <ul class="agros" id="agros"></ul>
+        <button class="btn outline wide" id="share" type="button" data-t="shareOther">Share another way</button>
         <p class="note" id="shareNote" hidden aria-live="polite"></p>
-
-        <div class="saved" id="savedRow" hidden>
-          <span id="savedLabel"></span>
-          <button class="linkbtn" id="editAgro" type="button" data-t="change">Change</button>
-          <button class="linkbtn" id="removeAgro" type="button" data-t="remove">Remove</button>
-        </div>
-        <button class="linkbtn" id="addAgro" type="button" data-t="save">Save my agronomist’s number</button>
-
-        <form class="agro-form" id="agroForm" hidden novalidate>
-          <label><span data-t="nameLabel">Name</span>
-            <input id="agroName" type="text" autocomplete="off" maxlength="40" data-ph="namePlaceholder">
-          </label>
-          <label><span data-t="phoneLabel">WhatsApp number</span>
-            <input id="agroPhone" type="tel" inputmode="tel" autocomplete="off" maxlength="20" data-ph="phonePlaceholder">
-          </label>
-          <p class="note err" id="agroErr" hidden></p>
-          <p class="note" data-t="savedNote">Saved only on this phone.</p>
-          <div class="row">
-            <button class="btn primary" type="submit" data-t="saveBtn">Save</button>
-            <button class="btn outline" type="button" id="agroCancel" data-t="cancel">Cancel</button>
-          </div>
-        </form>
+        <p class="note"><a href="agronomist/" data-t="invite">Are you an agronomist? Register to help farmers</a></p>
       </section>
       <button class="btn outline wide" id="again" type="button" data-t="again">Check another leaf</button>
     </section>
@@ -88,6 +69,7 @@
 
   <footer>
     <p data-t="disclaimer">Ijisho helps you spot problems early. It does not replace an agronomist.</p>
+    <p class="fine"><a href="privacy.html" data-t="privacyLink">Privacy</a> · <a href="agronomist/" data-t="forAgros">For agronomists</a></p>
     <p class="fine"><span data-t="credits">Model trained on field photos from the Makerere AI Lab and NaCRRI (MIT licence).</span> Open source: <a href="https://github.com/theoneste2060/ijisho">github.com/theoneste2060/ijisho</a></p>
   </footer>
 

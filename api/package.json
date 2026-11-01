@@ -1,0 +1,14 @@
+{
+  "name": "ijisho-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Agronomist registry and escalation API for Ijisho (Cloudflare Workers + D1, free tier).",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "migrate:local": "wrangler d1 migrations apply ijisho --local",
+    "migrate:remote": "wrangler d1 migrations apply ijisho --remote"
+  }
+}

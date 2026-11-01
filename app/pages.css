@@ -1,0 +1,45 @@
+/* Extra styles for the registration, admin and privacy pages (on top of styles.css). */
+a.brand { color: #fff; text-decoration: none; }
+.page { max-width: 40rem; }
+.page h2 { font-size: 1.5rem; margin-top: .5rem; }
+.page h3 { font-size: 1.15rem; margin-top: 1.4rem; }
+.lead { font-size: 1.05rem; color: var(--ink); }
+.ticks { padding-left: 1.2rem; color: var(--muted); }
+.ticks li + li { margin-top: .4rem; }
+.card-form { display: grid; gap: 1.1rem; margin-top: 1.5rem; padding: 1.2rem 1rem; border: 1px solid var(--line); border-top: 4px solid var(--accent); }
+.card-form label { display: grid; gap: .35rem; font-weight: 600; font-size: .95rem; }
+.card-form input:not([type=checkbox]), .card-form select, .card-form textarea, .admin-login input {
+  min-height: 44px; padding: .55rem .75rem; border: 1px solid var(--line); background: #fff;
+  font-family: inherit; font-size: 1rem; font-weight: 400; color: var(--ink); width: 100%;
+}
+.card-form textarea { min-height: 0; resize: vertical; }
+.card-form :focus-visible, .admin-login :focus-visible { outline: 3px solid var(--accent); outline-offset: 0; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+legend { font-weight: 600; font-size: .95rem; margin-bottom: .4rem; padding: 0; }
+.prov + .prov { margin-top: .6rem; }
+.prov-name { margin: 0 0 .25rem; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 700; }
+.checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: .1rem .75rem; }
+.checks.inline { grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr)); }
+.checks label { display: flex; align-items: center; gap: .5rem; font-weight: 400; min-height: 40px; }
+input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent-btn); flex: none; }
+.consent { display: flex !important; align-items: flex-start; gap: .6rem; font-weight: 400 !important; }
+.consent input { margin-top: .2rem; }
+.hint { color: var(--muted); font-weight: 400; font-size: .85rem; }
+.err { color: #B91C1C; font-weight: 600; font-size: .875rem; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.done { margin-top: 1.5rem; padding: 1.2rem 1rem; background: var(--ok-bg); border-top: 4px solid var(--accent); }
+.btn[disabled] { opacity: .6; cursor: wait; }
+
+/* admin */
+.admin-login { display: grid; gap: .6rem; margin-top: 1rem; }
+.tabs { display: flex; gap: .5rem; flex-wrap: wrap; margin: 1rem 0; }
+.tabs button { font-family: inherit; font-weight: 600; padding: .5rem .9rem; border: 1px solid var(--ink); background: #fff; color: var(--ink); cursor: pointer; }
+.tabs button[aria-pressed=true] { background: var(--ink); color: #fff; }
+.agro { border: 1px solid var(--line); padding: .9rem 1rem; }
+.agro + .agro { margin-top: .75rem; }
+.agro h3 { margin: 0; font-size: 1.05rem; }
+.agro p { margin: .25rem 0; font-size: .9rem; color: var(--muted); }
+.agro .row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
+.agro .row .btn { min-height: 40px; padding: 6px 14px; font-size: .85rem; }
+.btn.danger { background: #fff; color: #B91C1C; border-color: #B91C1C; }
+.empty { color: var(--muted); }

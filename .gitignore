@@ -7,3 +7,4 @@ models/*.pt
 .vercel
 data/negatives/
 data/collect.log
+.devtoken

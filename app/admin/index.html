@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin · Ijisho</title>
+  <link rel="icon" href="../icons/icon-192.png">
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../pages.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="../"><img src="../icons/icon-192.png" alt="" width="36" height="36"><div><h1>Ijisho</h1><p class="status">Admin: agronomists</p></div></a>
+    <button class="lang" id="logout" type="button" hidden>Log out</button>
+  </header>
+  <main class="page">
+    <form class="admin-login" id="login">
+      <label for="token"><b>Admin password</b></label>
+      <input id="token" type="password" autocomplete="current-password" required>
+      <p class="err" id="loginErr" hidden>Wrong password.</p>
+      <button class="btn primary" type="submit">Open</button>
+      <p class="hint">Kept only in this browser tab, and forgotten when you close it.</p>
+    </form>
+
+    <section id="panel" hidden>
+      <div class="tabs" role="group" aria-label="Status">
+        <button type="button" data-status="pending" aria-pressed="true">Pending</button>
+        <button type="button" data-status="approved" aria-pressed="false">Approved</button>
+        <button type="button" data-status="rejected" aria-pressed="false">Rejected</button>
+      </div>
+      <div id="list"></div>
+    </section>
+  </main>
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

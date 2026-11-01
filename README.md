@@ -39,7 +39,8 @@ food and a key protein source across East Africa.
 | Runtime | [ONNX Runtime Web](https://onnxruntime.ai/) (WebAssembly) in the browser; the photo never leaves the phone |
 | App | A static Progressive Web App; a service worker caches everything on first visit, then it works offline |
 | Uncertainty | Below 70% confidence, Ijisho answers "not sure" and gives retake tips plus a pointer to an agronomist |
-| Ask an agronomist | Under every result: opens the phone's share menu with a small copy of the photo (long side 1,280 px) and a pre-written message, so the farmer sends it to their own extension officer or farmer promoter on WhatsApp or SMS. The farmer can save that person's WhatsApp number once (stored only on the phone) for a one-tap chat. No server: the photo only goes where the farmer sends it. A pilot partner number can be set in `app/content.js` (`PARTNER`) |
+| Ask an agronomist | Under every result the farmer picks their district (remembered on the phone) and sees the agronomists registered and approved there. Tapping one uploads a smaller copy of the photo and opens WhatsApp with the result and a private photo link (photos are deleted after 30 days). Offline, the last list is shown and WhatsApp opens without the link. "Share another way" uses the phone's share menu and uploads nothing |
+| Agronomist registry | Agronomists, extension officers and farmer promoters register at `/agronomist/` (EN/RW). Each registration waits for approval on `/admin/` (password protected). API: Cloudflare Worker + D1 in `api/` (free tier), reached through Vercel rewrites so everything shares one address |
 
 ## Results
 
@@ -80,11 +81,13 @@ python3 -m venv .venv
 .venv/bin/python training/train.py
 .venv/bin/python training/export.py   # writes app/model/ijisho-beans.onnx
 
-# 2. Serve the app (any static host works; the live copy runs on Vercel, see vercel.json)
-cd app && python3 -m http.server 8000
+# 2. API (registry + escalation photos), Cloudflare Workers + D1: see api/README.md
+cd api && npx wrangler d1 migrations apply ijisho --local && npx wrangler dev --port 8787
+# 3. Serve the app (the live copy runs on Vercel, see vercel.json; locally the app talks to port 8787)
+cd app && python3 -m http.server 4190
 ```
 
-Open http://localhost:8000 on a phone or desktop. After the first load it works with no connection.
+Open http://localhost:4190 on a phone or desktop. After the first load it works with no connection.
 
 ## Limitations (read before field use)
 

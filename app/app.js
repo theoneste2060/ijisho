@@ -1,4 +1,6 @@
-import { T, CLASSES, RESULTS, CONFIDENT, PARTNER, APP_URL } from './content.js';
+import { T, CLASSES, RESULTS, CONFIDENT, APP_URL } from './content.js';
+import { PROVINCES, PROVINCES_RW, DISTRICTS } from './districts.js';
+import { api, PUBLIC_BASE, ROLE_LABELS } from './api.js';
 
 const $ = (id) => document.getElementById(id);
 const MEAN = [0.485, 0.456, 0.406];
@@ -120,24 +122,15 @@ $('again').addEventListener('click', () => {
 });
 
 // ---------- ask an agronomist ----------
-// Nothing goes through a server: the farmer shares the photo and result with someone they choose.
-const AGRO_KEY = 'ijisho-agronomist';
+// The farmer picks a district once; Ijisho lists the agronomists approved for it. Tapping one uploads a
+// smaller copy of the photo (deleted after 30 days) and opens WhatsApp with the result and a link to the photo.
+// "Share another way" uses the phone's share menu and uploads nothing.
+const DISTRICT_KEY = 'ijisho-district';
+const LIST_KEY = (d) => `ijisho-agros-${d}`;
 const fill = (str, vars) => str.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
-
-function getAgro() {
-  try { return JSON.parse(localStorage.getItem(AGRO_KEY)); } catch { return null; }
-}
-
-// Accepts 078..., 78..., 250 78..., +250 78... (Rwanda) or any +country number; returns digits for wa.me.
-export function normalizePhone(raw) {
-  let d = (raw || '').replace(/[^\d+]/g, '');
-  const intl = d.startsWith('+');
-  d = d.replace(/\+/g, '');
-  if (!intl && /^0?7[2389]\d{7}$/.test(d)) d = '250' + d.replace(/^0/, '');
-  if (/^2507[2389]\d{7}$/.test(d)) return d;
-  if (intl && /^\d{8,15}$/.test(d) && !d.startsWith('250')) return d;
-  return null;
-}
+let district = localStorage.getItem(DISTRICT_KEY) || '';
+let agros = [];
+let agroState = 'idle'; // idle | loading | online | offline | none-offline
 
 function resultLine() {
   const t = T[lang];
@@ -147,42 +140,124 @@ function resultLine() {
   return `${t.msgResult}: ${name} (${Math.round(last.p * 100)}%)`;
 }
 
-function message(withPhoto) {
-  const t = T[lang];
+function today() {
   const now = new Date();
   // Phones have no Kinyarwanda date format, so Kinyarwanda uses day/month/year numbers.
-  const date = lang === 'rw'
+  return lang === 'rw'
     ? `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`
     : now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-  return [`${t.msgIntro} · ${date}`, resultLine(), withPhoto ? t.msgPhoto : '', t.msgAsk, '', `${t.msgVia}: ${APP_URL}`]
-    .filter((x, i) => x || i === 4).join('\n');
 }
 
-const waLink = (number, text) => `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
+function message({ to, link, photoAttached }) {
+  const t = T[lang];
+  return [
+    to ? fill(t.msgHello, { name: to }) : '',
+    `${t.msgIntro} · ${today()}`,
+    district ? `${t.msgDistrict}: ${district}` : '',
+    resultLine(),
+    link ? `${t.msgPhotoLink}: ${link}` : photoAttached ? t.msgPhoto : '',
+    t.msgAsk,
+    '',
+    `${t.msgVia}: ${APP_URL}`,
+  ].filter((x, i) => x || i === 6).join('\n');
+}
 
-// A smaller copy of the photo (long side 1280 px) so sending it costs less mobile data.
+// A smaller copy of the photo (long side 1280 px, under 380 KB) so sending it costs less mobile data.
 async function shareablePhoto() {
   const bmp = await createImageBitmap(lastFile, { imageOrientation: 'from-image' });
-  const scale = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
-  const canvas = new OffscreenCanvas(Math.round(bmp.width * scale), Math.round(bmp.height * scale));
-  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  let blob;
+  for (const [side, q] of [[1280, 0.85], [1024, 0.75], [800, 0.7]]) {
+    const scale = Math.min(1, side / Math.max(bmp.width, bmp.height));
+    const canvas = new OffscreenCanvas(Math.round(bmp.width * scale), Math.round(bmp.height * scale));
+    canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: q });
+    if (blob.size < 380 * 1024) break;
+  }
   bmp.close();
-  const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.85 });
   return new File([blob], 'ijisho-leaf.jpg', { type: 'image/jpeg' });
 }
 
-async function shareWithAgronomist() {
+function setStatus(text) {
+  $('agroStatus').textContent = text || '';
+  $('agroStatus').hidden = !text;
+}
+
+async function loadAgros() {
+  agros = [];
+  if (!district) { agroState = 'idle'; return renderAgros(); }
+  agroState = 'loading';
+  renderAgros();
+  try {
+    const r = await api(`/api/agronomists?district=${encodeURIComponent(district)}`);
+    if (!r.ok) throw new Error(String(r.status));
+    agros = r.data.agronomists || [];
+    localStorage.setItem(LIST_KEY(district), JSON.stringify(agros));
+    agroState = 'online';
+  } catch {
+    const cached = localStorage.getItem(LIST_KEY(district));
+    agros = cached ? JSON.parse(cached) : [];
+    agroState = cached ? 'offline' : 'none-offline';
+  }
+  renderAgros();
+}
+
+function renderAgros() {
+  const t = T[lang];
+  setStatus({
+    loading: t.loadingAgros,
+    offline: t.offlineAgros,
+    'none-offline': t.offlineNone,
+    online: agros.length ? '' : fill(t.noAgros, { district }),
+  }[agroState] || '');
+  $('agros').replaceChildren(...agros.map((a) => {
+    const li = document.createElement('li');
+    li.className = 'agro-card';
+    const role = ROLE_LABELS[a.role]?.[lang] || '';
+    li.innerHTML = `<div><b></b><span></span></div><button class="btn primary" type="button"></button>`;
+    li.querySelector('b').textContent = a.name;
+    li.querySelector('span').textContent = [role, a.organisation].filter(Boolean).join(' · ');
+    const btn = li.querySelector('button');
+    btn.textContent = t.whatsapp;
+    btn.addEventListener('click', () => escalate(a, btn));
+    return li;
+  }));
+}
+
+async function escalate(agro, btn) {
+  const t = T[lang];
+  btn.disabled = true;
+  setStatus(t.uploading);
+  let link = '';
+  try {
+    const fd = new FormData();
+    fd.set('photo', await shareablePhoto());
+    fd.set('result', last.p >= CONFIDENT ? last.cls : 'unsure');
+    fd.set('confidence', String(last.p));
+    fd.set('lang', lang);
+    fd.set('district', district);
+    const r = await api('/api/cases', { method: 'POST', form: fd });
+    if (!r.ok) throw new Error(String(r.status));
+    link = PUBLIC_BASE + r.data.path;
+    setStatus('');
+  } catch {
+    setStatus(t.uploadFailed);
+  }
+  btn.disabled = false;
+  const text = message({ to: agro.name, link });
+  location.href = `https://wa.me/${agro.phone}?text=${encodeURIComponent(text)}`;
+}
+
+async function shareAnotherWay() {
   const note = $('shareNote');
   note.hidden = true;
   try {
     const photo = lastFile ? await shareablePhoto() : null;
     if (photo && navigator.canShare && navigator.canShare({ files: [photo] })) {
-      await navigator.share({ files: [photo], text: message(true) });
+      await navigator.share({ files: [photo], text: message({ photoAttached: true }) });
     } else if (navigator.share) {
-      await navigator.share({ text: message(false) });
+      await navigator.share({ text: message({}) });
     } else {
-      // No share menu (some desktop browsers): WhatsApp lets the farmer pick a contact.
-      window.open(`https://wa.me/?text=${encodeURIComponent(message(false))}`, '_blank', 'noopener');
+      window.open(`https://wa.me/?text=${encodeURIComponent(message({}))}`, '_blank', 'noopener');
     }
     note.dataset.t = 'shared';
     note.textContent = T[lang].shared;
@@ -190,67 +265,44 @@ async function shareWithAgronomist() {
   } catch (e) {
     if (e && e.name === 'AbortError') return; // farmer closed the share menu
     console.error(e);
-    location.href = `sms:?body=${encodeURIComponent(message(false))}`;
+    location.href = `sms:?body=${encodeURIComponent(message({}))}`;
   }
+}
+
+function buildDistrictSelect() {
+  const sel = $('district');
+  const t = T[lang];
+  sel.replaceChildren(
+    Object.assign(document.createElement('option'), { value: '', textContent: t.districtPick }),
+    ...Object.entries(PROVINCES).map(([prov, list]) => {
+      const g = document.createElement('optgroup');
+      g.label = lang === 'rw' ? PROVINCES_RW[prov] : prov;
+      g.append(...list.map((d) => Object.assign(document.createElement('option'), { value: d, textContent: d })));
+      return g;
+    }),
+  );
+  sel.value = DISTRICTS.includes(district) ? district : '';
 }
 
 function renderAsk() {
-  const t = T[lang];
-  const agro = getAgro();
   $('ask').hidden = false;
-  $('waSaved').hidden = $('waSavedNote').hidden = $('savedRow').hidden = !agro;
-  $('addAgro').hidden = !!agro;
-  if (agro) {
-    $('waSaved').textContent = fill(t.askSaved, { name: agro.name });
-    $('waSaved').href = waLink(agro.phone, message(false));
-    $('waSavedNote').textContent = fill(t.askSavedNote, { name: agro.name });
-    $('savedLabel').textContent = `${agro.name} · +${agro.phone}`;
-  }
-  $('waPartner').hidden = !PARTNER;
-  if (PARTNER) {
-    $('waPartner').textContent = fill(t.askSaved, { name: PARTNER.name });
-    $('waPartner').href = waLink(PARTNER.whatsapp, message(false));
-  }
+  buildDistrictSelect();
+  if (agroState === 'idle' && district) loadAgros();
+  else renderAgros();
 }
 
-function openForm(open) {
-  $('agroForm').hidden = !open;
-  $('agroErr').hidden = true;
-  if (open) {
-    const agro = getAgro();
-    $('agroName').value = agro?.name || '';
-    $('agroPhone').value = agro ? '+' + agro.phone : '';
-    $('agroName').focus();
-  }
-}
-
-$('share').addEventListener('click', shareWithAgronomist);
-$('addAgro').addEventListener('click', () => openForm(true));
-$('editAgro').addEventListener('click', () => openForm(true));
-$('agroCancel').addEventListener('click', () => openForm(false));
-$('removeAgro').addEventListener('click', () => {
-  localStorage.removeItem(AGRO_KEY);
-  renderAsk();
+$('district').addEventListener('change', (e) => {
+  district = e.target.value;
+  localStorage.setItem(DISTRICT_KEY, district);
+  loadAgros();
 });
-$('agroForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const phone = normalizePhone($('agroPhone').value);
-  const name = $('agroName').value.trim() || (lang === 'rw' ? 'Umujyanama' : 'My agronomist');
-  if (!phone) {
-    $('agroErr').textContent = T[lang].badPhone;
-    $('agroErr').hidden = false;
-    return;
-  }
-  localStorage.setItem(AGRO_KEY, JSON.stringify({ name, phone }));
-  openForm(false);
-  renderAsk();
-});
+$('share').addEventListener('click', shareAnotherWay);
 
 applyLang();
 const ready = loadModel().catch((e) => {
   console.error(e);
   $('status').textContent = T[lang].error;
 });
-window.ijisho = { classify, ready, normalizePhone, message: () => message(true) }; // used by the automated browser test
+window.ijisho = { classify, ready }; // used by the automated browser test
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
