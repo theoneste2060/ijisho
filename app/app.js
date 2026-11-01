@@ -1,5 +1,4 @@
 import { T, CLASSES, RESULTS, CONFIDENT, APP_URL } from './content.js';
-import { api, PUBLIC_BASE, ROLE_LABELS } from './api.js';
 
 const $ = (id) => document.getElementById(id);
 const MEAN = [0.485, 0.456, 0.406];
@@ -128,7 +127,6 @@ async function handle(file) {
   $('preview').src = URL.createObjectURL(file);
   lastFile = file;
   $('ask').hidden = true;
-  closeChooser();
   try {
     if (!session) await ready;
     last = await classify(file);
@@ -149,21 +147,13 @@ $('again').addEventListener('click', () => {
   last = null;
   lastFile = null;
   $('ask').hidden = true;
-  closeChooser();
   $('result').hidden = true;
   $('intro').hidden = false;
 });
 
 // ---------- ask an agronomist ----------
-// "Ask an agronomist" lists every approved agronomist; the farmer searches and picks one. Tapping WhatsApp uploads
-// a smaller copy of the photo (deleted after 30 days) and opens WhatsApp with the result and a link to the photo.
-// "Share another way" uses the phone's share menu and uploads nothing.
-const LIST_KEY = 'ijisho-agros';
-const fill = (str, vars) => str.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
-const fold = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-let agros = [];
-let agroState = 'idle'; // idle | loading | online | offline | none-offline
-
+// Opens the phone's share menu with a smaller copy of the photo and a ready message, so the farmer sends it to
+// their own agronomist or farmer promoter (WhatsApp, SMS…). Nothing goes through a server.
 function resultLine() {
   const t = T[lang];
   if (!last) return '';
@@ -180,122 +170,35 @@ function today() {
     : now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function message({ to, link, photoAttached }) {
+function message(photoAttached) {
   const t = T[lang];
-  return [
-    to ? fill(t.msgHello, { name: to }) : '',
-    `${t.msgIntro} · ${today()}`,
-    resultLine(),
-    link ? `${t.msgPhotoLink}: ${link}` : photoAttached ? t.msgPhoto : '',
-    t.msgAsk,
-    '',
-    `${t.msgVia}: ${APP_URL}`,
-  ].filter((x, i) => x || i === 5).join('\n');
+  return [`${t.msgIntro} · ${today()}`, resultLine(), photoAttached ? t.msgPhoto : '', t.msgAsk, '', `${t.msgVia}: ${APP_URL}`]
+    .filter((x, i) => x || i === 4).join('\n');
 }
 
-// A smaller copy of the photo (long side 1280 px, under 380 KB) so sending it costs less mobile data.
+// A smaller copy of the photo (long side 1280 px) so sending it costs less mobile data.
 async function shareablePhoto() {
   const bmp = await createImageBitmap(lastFile, { imageOrientation: 'from-image' });
-  let blob;
-  for (const [side, q] of [[1280, 0.85], [1024, 0.75], [800, 0.7]]) {
-    const scale = Math.min(1, side / Math.max(bmp.width, bmp.height));
-    const canvas = new OffscreenCanvas(Math.round(bmp.width * scale), Math.round(bmp.height * scale));
-    canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
-    blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: q });
-    if (blob.size < 380 * 1024) break;
-  }
+  const scale = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
+  const canvas = new OffscreenCanvas(Math.round(bmp.width * scale), Math.round(bmp.height * scale));
+  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
   bmp.close();
+  const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.85 });
   return new File([blob], 'ijisho-leaf.jpg', { type: 'image/jpeg' });
 }
 
-function setStatus(text) {
-  $('agroStatus').textContent = text || '';
-  $('agroStatus').hidden = !text;
-}
-
-async function loadAgros() {
-  agroState = 'loading';
-  renderAgros();
-  try {
-    const r = await api('/api/agronomists');
-    if (!r.ok) throw new Error(String(r.status));
-    agros = r.data.agronomists || [];
-    localStorage.setItem(LIST_KEY, JSON.stringify(agros));
-    agroState = 'online';
-  } catch {
-    const cached = localStorage.getItem(LIST_KEY);
-    agros = cached ? JSON.parse(cached) : [];
-    agroState = cached ? 'offline' : 'none-offline';
-  }
-  renderAgros();
-}
-
-function matches(a, q) {
-  if (!q) return true;
-  const hay = fold([a.name, a.organisation, (a.districts || []).join(' '), ROLE_LABELS[a.role]?.en, ROLE_LABELS[a.role]?.rw].join(' '));
-  return fold(q).split(/\s+/).filter(Boolean).every((w) => hay.includes(w));
-}
-
-function renderAgros() {
-  const t = T[lang];
-  const q = $('search').value.trim();
-  const shown = agros.filter((a) => matches(a, q));
-  let status = '';
-  if (agroState === 'loading') status = t.loadingAgros;
-  else if (agroState === 'none-offline') status = t.offlineNone;
-  else if (!agros.length) status = t.noAgros;
-  else if (!shown.length) status = fill(t.noMatch, { q });
-  else status = (agroState === 'offline' ? t.offlineAgros + ' ' : '') + (shown.length === 1 ? t.countAgro : fill(t.countAgros, { n: shown.length }));
-  setStatus(status);
-  $('search').closest('label').hidden = agros.length < 2;
-  $('agros').replaceChildren(...shown.map((a) => {
-    const li = document.createElement('li');
-    li.className = 'agro-card';
-    li.innerHTML = '<div><b></b><span></span><span class="where"></span></div><button class="btn primary" type="button"></button>';
-    li.querySelector('b').textContent = a.name;
-    li.querySelector('span').textContent = [ROLE_LABELS[a.role]?.[lang], a.organisation].filter(Boolean).join(' · ');
-    li.querySelector('.where').textContent = (a.districts || []).join(', ');
-    const btn = li.querySelector('button');
-    btn.textContent = t.whatsapp;
-    btn.addEventListener('click', () => escalate(a, btn));
-    return li;
-  }));
-}
-
-async function escalate(agro, btn) {
-  const t = T[lang];
-  btn.disabled = true;
-  setStatus(t.uploading);
-  let link = '';
-  try {
-    const fd = new FormData();
-    fd.set('photo', await shareablePhoto());
-    fd.set('result', last.p >= CONFIDENT ? last.cls : 'unsure');
-    fd.set('confidence', String(last.p));
-    fd.set('lang', lang);
-    const r = await api('/api/cases', { method: 'POST', form: fd });
-    if (!r.ok) throw new Error(String(r.status));
-    link = PUBLIC_BASE + r.data.path;
-    setStatus('');
-  } catch {
-    setStatus(t.uploadFailed);
-  }
-  btn.disabled = false;
-  const text = message({ to: agro.name, link });
-  location.href = `https://wa.me/${agro.phone}?text=${encodeURIComponent(text)}`;
-}
-
-async function shareAnotherWay() {
+async function askAgronomist() {
   const note = $('shareNote');
   note.hidden = true;
   try {
     const photo = lastFile ? await shareablePhoto() : null;
     if (photo && navigator.canShare && navigator.canShare({ files: [photo] })) {
-      await navigator.share({ files: [photo], text: message({ photoAttached: true }) });
+      await navigator.share({ files: [photo], text: message(true) });
     } else if (navigator.share) {
-      await navigator.share({ text: message({}) });
+      await navigator.share({ text: message(false) });
     } else {
-      window.open(`https://wa.me/?text=${encodeURIComponent(message({}))}`, '_blank', 'noopener');
+      // No share menu (some desktop browsers): WhatsApp lets the farmer pick a contact.
+      window.open(`https://wa.me/?text=${encodeURIComponent(message(false))}`, '_blank', 'noopener');
     }
     note.dataset.t = 'shared';
     note.textContent = T[lang].shared;
@@ -303,30 +206,15 @@ async function shareAnotherWay() {
   } catch (e) {
     if (e && e.name === 'AbortError') return; // farmer closed the share menu
     console.error(e);
-    location.href = `sms:?body=${encodeURIComponent(message({}))}`;
+    location.href = `sms:?body=${encodeURIComponent(message(false))}`;
   }
 }
 
 function renderAsk() {
   $('ask').hidden = false;
-  if (!$('chooser').hidden) renderAgros();
 }
 
-function closeChooser() {
-  $('chooser').hidden = true;
-  $('askBtn').hidden = false;
-  $('askBtn').setAttribute('aria-expanded', 'false');
-  $('search').value = '';
-}
-
-$('askBtn').addEventListener('click', () => {
-  $('chooser').hidden = false;
-  $('askBtn').hidden = true;
-  $('askBtn').setAttribute('aria-expanded', 'true');
-  loadAgros();
-});
-$('search').addEventListener('input', renderAgros);
-$('share').addEventListener('click', shareAnotherWay);
+$('share').addEventListener('click', askAgronomist);
 
 // ---------- install ----------
 // Shown only to people who have not installed Ijisho. Chrome and Edge give a real install prompt; iPhones and

@@ -15,15 +15,6 @@
       ]
     },
     {
-      "source": "/admin/(.*)",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow"
-        }
-      ]
-    },
-    {
       "source": "/(.*)",
       "headers": [
         {
@@ -39,16 +30,6 @@
           "value": "camera=(self), microphone=(), geolocation=()"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://ijisho-api.theoneste-whatsapp-bot.workers.dev/api/:path*"
-    },
-    {
-      "source": "/c/:path*",
-      "destination": "https://ijisho-api.theoneste-whatsapp-bot.workers.dev/c/:path*"
     }
   ]
 }

@@ -1,14 +1,12 @@
 // Caches everything on first visit so Ijisho works with no connection afterwards.
 // Bump VERSION whenever any cached file changes.
-const VERSION = 'ijisho-v7';
+const VERSION = 'ijisho-v8';
 const FILES = [
   './',
   'index.html',
   'styles.css',
   'app.js',
   'content.js',
-  'districts.js',
-  'api.js',
   'manifest.webmanifest',
   'icons/icon-192.png',
   'icons/icon-512.png',
