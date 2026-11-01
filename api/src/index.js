@@ -40,7 +40,9 @@ async function route(request, env) {
   if (match && m === 'GET') return casePhoto(match[1], env);
 
   if (path.startsWith('/api/admin/')) {
-    if (!(await isAdmin(request, env))) return json({ error: 'unauthorised' }, 401, request, env);
+    const auth = await checkAdmin(request, env);
+    if (auth === 'not_configured') return json({ error: 'admin_not_configured' }, 503, request, env);
+    if (auth !== 'ok') return json({ error: 'unauthorised' }, 401, request, env);
     if (path === '/api/admin/agronomists' && m === 'GET') return adminList(url, env, request);
     match = path.match(/^\/api\/admin\/agronomists\/([a-z0-9]{12,40})$/);
     if (match && m === 'POST') return adminAct(match[1], request, env);
@@ -166,13 +168,24 @@ h1{font-size:1.3rem;margin:1rem 1rem .3rem}p{margin:.3rem 1rem}.r b{color:#B4530
 }
 
 // ---------- admin ----------
-async function isAdmin(request, env) {
-  const token = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
-  if (!env.ADMIN_TOKEN || env.ADMIN_TOKEN.length < 12 || !token) return false;
-  const [a, b] = [await sha(token), await sha(env.ADMIN_TOKEN)];
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
+const MIN_ADMIN_PASSWORD = 12;
+
+// Returns 'ok', 'not_configured', 'no_password' or 'mismatch'. Spaces and line breaks around either side are
+// ignored (they are easy to paste by accident). The reason and lengths go to the private Worker log, never the value.
+async function checkAdmin(request, env) {
+  const secret = (env.ADMIN_TOKEN || '').trim();
+  const token = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
+  let reason;
+  if (secret.length < MIN_ADMIN_PASSWORD) reason = 'not_configured';
+  else if (!token) reason = 'no_password';
+  else {
+    const [a, b] = [await sha(token), await sha(secret)];
+    let diff = 0;
+    for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    reason = diff === 0 ? 'ok' : 'mismatch';
+  }
+  if (reason !== 'ok') console.log(JSON.stringify({ admin_auth: reason, sent_length: token.length, server_length: secret.length, raw_server_length: (env.ADMIN_TOKEN || '').length }));
+  return reason;
 }
 
 async function adminList(url, env, request) {

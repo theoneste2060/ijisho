@@ -27,5 +27,5 @@ npm test        # 8 integration tests against the local API
 ```bash
 npx wrangler d1 migrations apply ijisho --remote
 npx wrangler deploy
-npx wrangler secret put ADMIN_TOKEN   # choose the admin password (12+ characters); never commit it
+npx wrangler secret put ADMIN_TOKEN   # in a normal terminal (it asks for the value); 12+ characters; never commit it
 ```

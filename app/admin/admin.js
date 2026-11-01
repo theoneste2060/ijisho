@@ -11,7 +11,8 @@ const LANGS = { rw: 'Kinyarwanda', en: 'English', fr: 'Français', sw: 'Kiswahil
 async function load() {
   const token = sessionStorage.getItem(KEY);
   const r = await api(`/api/admin/agronomists?status=${status}`, { token });
-  if (r.status === 401) return logout(true);
+  if (r.status === 401) return logout('wrong');
+  if (r.status === 503) return logout('server');
   $('#login').hidden = true;
   $('#panel').hidden = false;
   $('#logout').hidden = false;
@@ -45,12 +46,18 @@ function card(a) {
   </article>`;
 }
 
-function logout(wrong) {
+const LOGIN_ERRORS = {
+  wrong: 'Wrong password.',
+  server: 'The admin password on the server is not set (or is shorter than 12 characters). Set it from a normal terminal: cd ~/projects/ijisho/api && npx wrangler secret put ADMIN_TOKEN',
+};
+
+function logout(reason) {
   sessionStorage.removeItem(KEY);
   $('#panel').hidden = true;
   $('#logout').hidden = true;
   $('#login').hidden = false;
-  $('#loginErr').hidden = !wrong;
+  $('#loginErr').textContent = LOGIN_ERRORS[reason] || '';
+  $('#loginErr').hidden = !LOGIN_ERRORS[reason];
 }
 
 $('#login').addEventListener('submit', (e) => {
@@ -59,7 +66,7 @@ $('#login').addEventListener('submit', (e) => {
   $('#token').value = '';
   load();
 });
-$('#logout').addEventListener('click', () => logout(false));
+$('#logout').addEventListener('click', () => logout());
 for (const b of document.querySelectorAll('[data-status]')) {
   b.addEventListener('click', () => { status = b.dataset.status; load(); });
 }
