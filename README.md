@@ -39,7 +39,7 @@ food and a key protein source across East Africa.
 | Runtime | [ONNX Runtime Web](https://onnxruntime.ai/) (WebAssembly) in the browser; the photo never leaves the phone |
 | App | A static Progressive Web App; a service worker caches everything on first visit, then it works offline |
 | Uncertainty | Below 70% confidence, Ijisho answers "not sure" and gives retake tips plus a pointer to an agronomist |
-| Ask an agronomist | Under every result the farmer picks their district (remembered on the phone) and sees the agronomists registered and approved there. Tapping one uploads a smaller copy of the photo and opens WhatsApp with the result and a private photo link (photos are deleted after 30 days). Offline, the last list is shown and WhatsApp opens without the link. "Share another way" uses the phone's share menu and uploads nothing |
+| Ask an agronomist | Under every result, "Ask an agronomist" lists every registered and approved agronomist; the farmer searches by name, district, role or organisation and picks one. Tapping WhatsApp uploads a smaller copy of the photo and opens WhatsApp with the result and a private photo link (photos are deleted after 30 days). Offline, the last list saved on the phone is shown and WhatsApp opens without the link. "Share another way" uses the phone's share menu and uploads nothing |
 | Agronomist registry | Agronomists, extension officers and farmer promoters register at `/agronomist/` (EN/RW). Each registration waits for approval on `/admin/` (password protected). API: Cloudflare Worker + D1 in `api/` (free tier), reached through Vercel rewrites so everything shares one address |
 
 ## Results

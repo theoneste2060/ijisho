@@ -85,16 +85,18 @@ async function register(request, env) {
 }
 
 // ---------- public list ----------
+// All approved agronomists (the app lists them and lets the farmer search), or one district with ?district=.
 async function listApproved(url, env, request) {
   const district = url.searchParams.get('district');
-  if (!DISTRICTS.includes(district)) return json({ error: 'unknown_district' }, 400, request, env);
+  if (district !== null && !DISTRICTS.includes(district)) return json({ error: 'unknown_district' }, 400, request, env);
+  const where = district ? "status = 'approved' AND districts LIKE ?" : "status = 'approved'";
+  const stmt = env.DB.prepare(
+    `SELECT id, name, phone, role, organisation, districts, languages FROM agronomists WHERE ${where} ORDER BY name COLLATE NOCASE LIMIT 500`,
+  );
   // districts is a JSON array of exact names, so a quoted LIKE match is exact.
-  const { results } = await env.DB.prepare(
-    `SELECT id, name, phone, role, organisation, languages FROM agronomists
-     WHERE status = 'approved' AND districts LIKE ? ORDER BY reviewed_at ASC LIMIT 30`,
-  ).bind(`%"${district}"%`).all();
-  const list = results.map((r) => ({ ...r, languages: JSON.parse(r.languages || '[]') }));
-  return json({ district, agronomists: list }, 200, request, env, { 'Cache-Control': 'public, max-age=300' });
+  const { results } = await (district ? stmt.bind(`%"${district}"%`) : stmt).all();
+  const list = results.map((r) => ({ ...r, districts: JSON.parse(r.districts || '[]'), languages: JSON.parse(r.languages || '[]') }));
+  return json({ district: district || null, agronomists: list }, 200, request, env, { 'Cache-Control': 'public, max-age=120' });
 }
 
 // ---------- escalation cases ----------

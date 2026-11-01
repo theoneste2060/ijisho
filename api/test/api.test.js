@@ -67,6 +67,19 @@ test('approve → listed in their districts only; reject/delete removes', async 
   assert.equal((await admin(`/api/admin/agronomists/${row.id}`, { method: 'DELETE' })).status, 404);
 });
 
+test('full list (no district) returns every approved agronomist with their districts', async () => {
+  const a = valid({ name: 'Everyone Sees Me', districts: ['Rusizi'] });
+  await post('/api/agronomists', a);
+  const pending = await (await admin('/api/admin/agronomists?status=pending')).json();
+  const row = pending.agronomists.find((x) => x.phone === '250' + a.phone.slice(1));
+  await admin(`/api/admin/agronomists/${row.id}`, { method: 'POST', body: JSON.stringify({ action: 'approve' }) });
+  const all = await (await fetch(`${BASE}/api/agronomists`)).json();
+  const me = all.agronomists.find((x) => x.id === row.id);
+  assert.deepEqual(me.districts, ['Rusizi']);
+  assert.ok(all.agronomists.every((x) => Array.isArray(x.districts)));
+  await admin(`/api/admin/agronomists/${row.id}`, { method: 'DELETE' });
+});
+
 test('unknown district is refused', async () => {
   assert.equal((await fetch(`${BASE}/api/agronomists?district=Atlantis`)).status, 400);
 });

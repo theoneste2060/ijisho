@@ -1,5 +1,4 @@
 import { T, CLASSES, RESULTS, CONFIDENT, APP_URL } from './content.js';
-import { PROVINCES, PROVINCES_RW, DISTRICTS } from './districts.js';
 import { api, PUBLIC_BASE, ROLE_LABELS } from './api.js';
 
 const $ = (id) => document.getElementById(id);
@@ -97,6 +96,7 @@ async function handle(file) {
   $('preview').src = URL.createObjectURL(file);
   lastFile = file;
   $('ask').hidden = true;
+  closeChooser();
   try {
     if (!session) await ready;
     last = await classify(file);
@@ -117,18 +117,18 @@ $('again').addEventListener('click', () => {
   last = null;
   lastFile = null;
   $('ask').hidden = true;
+  closeChooser();
   $('result').hidden = true;
   $('intro').hidden = false;
 });
 
 // ---------- ask an agronomist ----------
-// The farmer picks a district once; Ijisho lists the agronomists approved for it. Tapping one uploads a
-// smaller copy of the photo (deleted after 30 days) and opens WhatsApp with the result and a link to the photo.
+// "Ask an agronomist" lists every approved agronomist; the farmer searches and picks one. Tapping WhatsApp uploads
+// a smaller copy of the photo (deleted after 30 days) and opens WhatsApp with the result and a link to the photo.
 // "Share another way" uses the phone's share menu and uploads nothing.
-const DISTRICT_KEY = 'ijisho-district';
-const LIST_KEY = (d) => `ijisho-agros-${d}`;
+const LIST_KEY = 'ijisho-agros';
 const fill = (str, vars) => str.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
-let district = localStorage.getItem(DISTRICT_KEY) || '';
+const fold = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 let agros = [];
 let agroState = 'idle'; // idle | loading | online | offline | none-offline
 
@@ -153,13 +153,12 @@ function message({ to, link, photoAttached }) {
   return [
     to ? fill(t.msgHello, { name: to }) : '',
     `${t.msgIntro} · ${today()}`,
-    district ? `${t.msgDistrict}: ${district}` : '',
     resultLine(),
     link ? `${t.msgPhotoLink}: ${link}` : photoAttached ? t.msgPhoto : '',
     t.msgAsk,
     '',
     `${t.msgVia}: ${APP_URL}`,
-  ].filter((x, i) => x || i === 6).join('\n');
+  ].filter((x, i) => x || i === 5).join('\n');
 }
 
 // A smaller copy of the photo (long side 1280 px, under 380 KB) so sending it costs less mobile data.
@@ -183,39 +182,47 @@ function setStatus(text) {
 }
 
 async function loadAgros() {
-  agros = [];
-  if (!district) { agroState = 'idle'; return renderAgros(); }
   agroState = 'loading';
   renderAgros();
   try {
-    const r = await api(`/api/agronomists?district=${encodeURIComponent(district)}`);
+    const r = await api('/api/agronomists');
     if (!r.ok) throw new Error(String(r.status));
     agros = r.data.agronomists || [];
-    localStorage.setItem(LIST_KEY(district), JSON.stringify(agros));
+    localStorage.setItem(LIST_KEY, JSON.stringify(agros));
     agroState = 'online';
   } catch {
-    const cached = localStorage.getItem(LIST_KEY(district));
+    const cached = localStorage.getItem(LIST_KEY);
     agros = cached ? JSON.parse(cached) : [];
     agroState = cached ? 'offline' : 'none-offline';
   }
   renderAgros();
 }
 
+function matches(a, q) {
+  if (!q) return true;
+  const hay = fold([a.name, a.organisation, (a.districts || []).join(' '), ROLE_LABELS[a.role]?.en, ROLE_LABELS[a.role]?.rw].join(' '));
+  return fold(q).split(/\s+/).filter(Boolean).every((w) => hay.includes(w));
+}
+
 function renderAgros() {
   const t = T[lang];
-  setStatus({
-    loading: t.loadingAgros,
-    offline: t.offlineAgros,
-    'none-offline': t.offlineNone,
-    online: agros.length ? '' : fill(t.noAgros, { district }),
-  }[agroState] || '');
-  $('agros').replaceChildren(...agros.map((a) => {
+  const q = $('search').value.trim();
+  const shown = agros.filter((a) => matches(a, q));
+  let status = '';
+  if (agroState === 'loading') status = t.loadingAgros;
+  else if (agroState === 'none-offline') status = t.offlineNone;
+  else if (!agros.length) status = t.noAgros;
+  else if (!shown.length) status = fill(t.noMatch, { q });
+  else status = (agroState === 'offline' ? t.offlineAgros + ' ' : '') + (shown.length === 1 ? t.countAgro : fill(t.countAgros, { n: shown.length }));
+  setStatus(status);
+  $('search').closest('label').hidden = agros.length < 2;
+  $('agros').replaceChildren(...shown.map((a) => {
     const li = document.createElement('li');
     li.className = 'agro-card';
-    const role = ROLE_LABELS[a.role]?.[lang] || '';
-    li.innerHTML = `<div><b></b><span></span></div><button class="btn primary" type="button"></button>`;
+    li.innerHTML = '<div><b></b><span></span><span class="where"></span></div><button class="btn primary" type="button"></button>';
     li.querySelector('b').textContent = a.name;
-    li.querySelector('span').textContent = [role, a.organisation].filter(Boolean).join(' · ');
+    li.querySelector('span').textContent = [ROLE_LABELS[a.role]?.[lang], a.organisation].filter(Boolean).join(' · ');
+    li.querySelector('.where').textContent = (a.districts || []).join(', ');
     const btn = li.querySelector('button');
     btn.textContent = t.whatsapp;
     btn.addEventListener('click', () => escalate(a, btn));
@@ -234,7 +241,6 @@ async function escalate(agro, btn) {
     fd.set('result', last.p >= CONFIDENT ? last.cls : 'unsure');
     fd.set('confidence', String(last.p));
     fd.set('lang', lang);
-    fd.set('district', district);
     const r = await api('/api/cases', { method: 'POST', form: fd });
     if (!r.ok) throw new Error(String(r.status));
     link = PUBLIC_BASE + r.data.path;
@@ -269,33 +275,25 @@ async function shareAnotherWay() {
   }
 }
 
-function buildDistrictSelect() {
-  const sel = $('district');
-  const t = T[lang];
-  sel.replaceChildren(
-    Object.assign(document.createElement('option'), { value: '', textContent: t.districtPick }),
-    ...Object.entries(PROVINCES).map(([prov, list]) => {
-      const g = document.createElement('optgroup');
-      g.label = lang === 'rw' ? PROVINCES_RW[prov] : prov;
-      g.append(...list.map((d) => Object.assign(document.createElement('option'), { value: d, textContent: d })));
-      return g;
-    }),
-  );
-  sel.value = DISTRICTS.includes(district) ? district : '';
-}
-
 function renderAsk() {
   $('ask').hidden = false;
-  buildDistrictSelect();
-  if (agroState === 'idle' && district) loadAgros();
-  else renderAgros();
+  if (!$('chooser').hidden) renderAgros();
 }
 
-$('district').addEventListener('change', (e) => {
-  district = e.target.value;
-  localStorage.setItem(DISTRICT_KEY, district);
+function closeChooser() {
+  $('chooser').hidden = true;
+  $('askBtn').hidden = false;
+  $('askBtn').setAttribute('aria-expanded', 'false');
+  $('search').value = '';
+}
+
+$('askBtn').addEventListener('click', () => {
+  $('chooser').hidden = false;
+  $('askBtn').hidden = true;
+  $('askBtn').setAttribute('aria-expanded', 'true');
   loadAgros();
 });
+$('search').addEventListener('input', renderAgros);
 $('share').addEventListener('click', shareAnotherWay);
 
 applyLang();

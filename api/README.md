@@ -6,7 +6,7 @@ In production the app reaches it through Vercel rewrites (`/api/*` and `/c/*` on
 | Endpoint | What it does |
 |---|---|
 | `POST /api/agronomists` | Register (name, phone, role, organisation, districts, languages, note, consent). Starts as `pending`. 5 per hour per IP; hidden honeypot field for bots |
-| `GET /api/agronomists?district=Kamonyi` | Approved agronomists for one district |
+| `GET /api/agronomists` | All approved agronomists with their districts (the app lists and searches them). `?district=Kamonyi` filters to one district |
 | `POST /api/cases` | Multipart: `photo` (JPEG up to 400 KB), `result`, `confidence`, `lang`, `district`. Returns `/c/<id>`. 30 per hour per IP, 2,000 per day overall |
 | `GET /c/<id>` and `/c/<id>/photo` | Page and image for the agronomist. Expire after 30 days; a daily cron deletes them |
 | `GET /api/admin/agronomists?status=pending` | Admin list (Bearer `ADMIN_TOKEN`) |
@@ -18,8 +18,8 @@ In production the app reaches it through Vercel rewrites (`/api/*` and `/c/*` on
 ```bash
 npx wrangler d1 migrations apply ijisho --local
 echo "ADMIN_TOKEN=$(openssl rand -base64 24)" > .dev.vars   # local test password, git-ignored
-npx wrangler dev --port 8787
-npm test        # 8 integration tests against the local API
+npx wrangler dev --port 8787 --test-scheduled
+npm test        # 9 integration tests against the local API (start with --test-scheduled)
 ```
 
 ## Deploy
