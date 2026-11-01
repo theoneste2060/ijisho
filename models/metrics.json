@@ -3,7 +3,8 @@
   "classes": [
     "angular_leaf_spot",
     "bean_rust",
-    "healthy"
+    "healthy",
+    "not_bean"
   ],
   "input": {
     "size": 224,
@@ -19,41 +20,62 @@
       0.225
     ]
   },
-  "selected": "full epoch 3/10 loss 0.317 val_acc 0.970 (40s)",
-  "validation_accuracy": 0.9699,
-  "test_accuracy": 0.9219,
+  "selected": "full epoch 4/10 loss 0.329 val_acc 0.982 (65s)",
+  "validation_accuracy": 0.9819,
+  "test_accuracy_all": 0.963,
+  "test_bean_accuracy": 0.9375,
+  "test_bean_wrongly_rejected": 0,
+  "test_not_bean_caught": 1.0,
+  "test_counts": {
+    "bean": 128,
+    "not_bean": 88
+  },
   "test_confusion_matrix": [
     [
       40,
       3,
+      0,
       0
     ],
     [
-      5,
-      38,
+      4,
+      39,
+      0,
       0
     ],
     [
       0,
-      2,
-      40
+      1,
+      41,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      88
     ]
   ],
   "test_per_class": {
     "angular_leaf_spot": {
-      "precision": 0.889,
+      "precision": 0.909,
       "recall": 0.93,
       "support": 43
     },
     "bean_rust": {
-      "precision": 0.884,
-      "recall": 0.884,
+      "precision": 0.907,
+      "recall": 0.907,
       "support": 43
     },
     "healthy": {
       "precision": 1.0,
-      "recall": 0.952,
+      "recall": 0.976,
       "support": 42
+    },
+    "not_bean": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "support": 88
     }
   }
 }

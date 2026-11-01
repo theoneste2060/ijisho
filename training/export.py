@@ -17,7 +17,7 @@ from onnxruntime.quantization import CalibrationDataReader, QuantFormat, QuantTy
 from onnxruntime.quantization.shape_inference import quant_pre_process
 from PIL import Image
 
-from train import CLASSES, build_model, eval_tf, load_split
+from train import CLASSES, build_model, eval_tf, load_all
 
 ROOT = Path(__file__).resolve().parent.parent
 MODELS = ROOT / "models"
@@ -28,7 +28,7 @@ INT8 = MODELS / "ijisho-beans-int8.onnx"
 
 
 def tensors(split, limit=None):
-    images, labels = load_split(split)
+    images, labels = load_all(split)
     if limit:
         images, labels = images[:limit], labels[:limit]
     for b, y in zip(images, labels):
@@ -49,7 +49,7 @@ class Calib(CalibrationDataReader):
     """Feeds 120 training photos (never test photos) to pick the 8-bit ranges."""
 
     def __init__(self):
-        self.it = ({"image": x} for x, _ in tensors("train", limit=120))
+        self.it = ({"image": x} for x, _ in tensors("train", limit=160))
 
     def get_next(self):
         return next(self.it, None)

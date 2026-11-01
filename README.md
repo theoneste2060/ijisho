@@ -3,6 +3,7 @@
 **Ijisho** ("eye" in Kinyarwanda) checks a bean leaf for disease from a phone photo, **fully offline**.
 A farmer or extension officer takes a photo of one leaf; Ijisho says whether it looks like
 **angular leaf spot**, **bean rust**, or **healthy**, and what to do next, in **English or Kinyarwanda**.
+If the photo isn't a bean leaf (a laptop, a bottle, a maize leaf…), it says so.
 When it isn't confident, it says so and points to a human agronomist instead of guessing.
 
 **Try it: [ijisho-amber.vercel.app](https://ijisho-amber.vercel.app)** · open it once on a phone, then it works with no connection. On Android, use *Add to Home screen* to install it like an app.
@@ -33,38 +34,39 @@ food and a key protein source across East Africa.
 
 | Part | What it is |
 |---|---|
-| Model | MobileNetV3-Small, ImageNet weights, fine-tuned for 3 classes |
-| Data | [Makerere AI Lab "beans" dataset](https://huggingface.co/datasets/AI-Lab-Makerere/beans): 1,295 field photos from Ugandan farms, taken on basic smartphones, labelled by NaCRRI experts (MIT licence) |
+| Model | MobileNetV3-Small, ImageNet weights, fine-tuned for 4 classes: 3 bean classes + "not a bean leaf" |
+| Data | [Makerere AI Lab "beans" dataset](https://huggingface.co/datasets/AI-Lab-Makerere/beans): 1,295 field photos from Ugandan farms, taken on basic smartphones, labelled by NaCRRI experts (MIT licence). Plus 528 freely licensed Wikimedia Commons photos of everyday objects and other crops for "not a bean leaf" (`training/collect_negatives.py`, credits in `NEGATIVES_CREDITS.csv`) |
 | Runtime | [ONNX Runtime Web](https://onnxruntime.ai/) (WebAssembly) in the browser; the photo never leaves the phone |
 | App | A static Progressive Web App; a service worker caches everything on first visit, then it works offline |
 | Uncertainty | Below 70% confidence, Ijisho answers "not sure" and gives retake tips plus a pointer to an agronomist |
 
 ## Results
 
-Measured on the dataset's held-out **test split (128 photos)**, which was never used for training or for
-choosing the model. The validation split (133 photos) picked the best epoch.
+Measured on held-out **test photos** never used for training or for choosing the model: the dataset's 128 bean
+test photos plus 88 "not a bean leaf" photos (15% of each Wikimedia search, set aside before training).
+The validation split picked the best epoch.
 
-| | Result |
-|---|---|
-| Test accuracy (PyTorch / ONNX, same model) | **92.2%** (118 / 128) |
-| Test accuracy in the browser app | **90.6%** (116 / 128); small resize differences between the browser canvas and Python |
-| When Ijisho gives an answer (confidence ≥ 70%) | right **95.4%** of the time (104 / 109) |
-| Photos answered "not sure" | 19 / 128, which caught 7 of the 12 mistakes |
-| Confidently wrong | 5 / 128 (3.9%) |
-| Model size | 6.1 MB (full precision; an 8-bit version lost all accuracy and was rejected automatically) |
-| First download, then offline | about 21 MB (model + WebAssembly runtime), cached on the phone |
-| Speed | about 35 ms per photo on a laptop CPU; expect a few hundred ms on a budget phone |
+| | 3-class model (v1) | 4-class model (current) |
+|---|---|---|
+| Bean disease accuracy, same 128 photos | 92.2% (browser 90.6%) | **93.8%** (browser 93.8%) |
+| Real bean leaves wrongly called "not a bean leaf" | n/a | **0 / 128** |
+| Non-bean test photos caught | none (no such answer) | **88 / 88** |
+| Other photos from different sources (people, screenshots, graphics) | n/a | 7 / 7 caught |
+| Model size | 6.1 MB | 6.1 MB (8-bit version rejected again: accuracy collapsed) |
 
-Test confusion matrix (rows = true class, columns = predicted):
+Test confusion matrix, current model (rows = true class, columns = predicted):
 
-| | angular leaf spot | bean rust | healthy |
-|---|---|---|---|
-| **angular leaf spot** | 40 | 3 | 0 |
-| **bean rust** | 5 | 38 | 0 |
-| **healthy** | 0 | 2 | 40 |
+| | angular leaf spot | bean rust | healthy | not a bean leaf |
+|---|---|---|---|---|
+| **angular leaf spot** | 40 | 3 | 0 | 0 |
+| **bean rust** | 4 | 39 | 0 | 0 |
+| **healthy** | 0 | 1 | 41 | 0 |
+| **not a bean leaf** | 0 | 0 | 0 | 88 |
 
-Most mistakes are between the two diseases. No diseased leaf was called healthy on this test set.
-Training takes about 8 minutes on a 4-core laptop CPU (no GPU).
+The "not a bean leaf" test photos come from the same Wikimedia searches as the training ones, so 88/88 is
+optimistic: expect some real-world photos to slip through. Below 70% confidence the app still answers
+"not sure". Speed: about 35 ms per photo on a laptop CPU; first download about 21 MB, then offline.
+Training: about 15 minutes on a 4-core laptop CPU (no GPU).
 
 ## Run it
 
@@ -73,6 +75,7 @@ Training takes about 8 minutes on a 4-core laptop CPU (no GPU).
 python3 -m venv .venv
 .venv/bin/pip install -r training/requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
 # download the three parquet files from huggingface.co/datasets/AI-Lab-Makerere/beans (data/ folder) into ./data
+.venv/bin/python training/collect_negatives.py   # "not a bean leaf" photos from Wikimedia Commons
 .venv/bin/python training/train.py
 .venv/bin/python training/export.py   # writes app/model/ijisho-beans.onnx
 
@@ -84,9 +87,9 @@ Open http://localhost:8000 on a phone or desktop. After the first load it works 
 
 ## Limitations (read before field use)
 
-- **It only knows bean leaves and two diseases.** A photo of another crop, another bean disease (e.g. common
-  bacterial blight, anthracnose, bean common mosaic virus) or pest damage will still be forced into one of the
-  three answers, though often with low confidence, which triggers "not sure".
+- **It only knows two bean diseases.** Photos that aren't bean leaves are usually caught as "not a bean leaf",
+  but another bean disease (e.g. common bacterial blight, anthracnose, bean common mosaic virus) or pest damage
+  on a bean leaf will still be forced into one of the known answers, sometimes with low confidence ("not sure").
 - **The data is from Uganda.** Varieties, light and backgrounds in Rwanda may differ. Before recommending it to
   farmers, it should be tested on photos from Rwandan fields and checked with RAB agronomists.
 - **The Kinyarwanda text is a first draft** and needs review by a native speaker and an agronomist.
@@ -105,5 +108,7 @@ Open http://localhost:8000 on a phone or desktop. After the first load it works 
 
 - Code: MIT © 2026 Theoneste NZAKIZWANIMANA ([theoneste.dev](https://theoneste-dev.vercel.app))
 - Data: Makerere AI Lab with the National Crops Resources Research Institute (NaCRRI), Uganda, MIT
+- "Not a bean leaf" photos: Wikimedia Commons contributors, CC0 / public domain / CC BY / CC BY-SA; every photo
+  is credited in `NEGATIVES_CREDITS.csv` (the photos themselves are not in this repo)
 - Base model weights: torchvision MobileNetV3-Small (BSD-3-Clause)
 - Runtime: ONNX Runtime Web © Microsoft, MIT (see `app/vendor/LICENSE`)

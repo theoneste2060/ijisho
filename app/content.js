@@ -54,7 +54,7 @@ export const T = {
 };
 
 // Order must match the model's output order (see models/metrics.json).
-export const CLASSES = ['angular_leaf_spot', 'bean_rust', 'healthy'];
+export const CLASSES = ['angular_leaf_spot', 'bean_rust', 'healthy', 'not_bean'];
 
 export const RESULTS = {
   angular_leaf_spot: {
@@ -125,6 +125,27 @@ export const RESULTS = {
         'Suzuma umurima wawe rimwe mu cyumweru, harimo no munsi y’amababi.',
         'Suzuma ibihingwa byinshi mu bice bitandukanye by’umurima, si ikibabi kimwe gusa.',
         'Kura ibyatsi bibi kandi usige intera hagati y’ibihingwa kugira ngo amababi yume vuba.',
+      ],
+    },
+  },
+  not_bean: {
+    tone: 'unsure',
+    en: {
+      name: 'This doesn’t look like a bean leaf',
+      what: 'Ijisho only checks bean leaves. This photo looks like something else.',
+      advice: [
+        'Take a photo of a single bean leaf, close enough that the leaf fills most of the photo.',
+        'Use daylight and keep the camera steady.',
+        'For other crops, ask your local agronomist or farmer promoter.',
+      ],
+    },
+    rw: {
+      name: 'Ibi ntibisa n’ikibabi cy’igishyimbo',
+      what: 'Ijisho risuzuma ibibabi by’ibishyimbo gusa. Iyi foto isa n’ikindi kintu.',
+      advice: [
+        'Fotora ikibabi kimwe cy’igishyimbo, ukegere ku buryo cyuzura igice kinini cy’ifoto.',
+        'Fotora ku manywa kandi ufashe telefoni neza ntinyeganyege.',
+        'Ku bindi bihingwa, baza umujyanama w’ubuhinzi cyangwa umufashamyumvire w’abahinzi.',
       ],
     },
   },

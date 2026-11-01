@@ -5,3 +5,5 @@ models/*.onnx
 models/*.pt
 .testimgs/
 .vercel
+data/negatives/
+data/collect.log
