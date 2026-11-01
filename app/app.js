@@ -21,6 +21,7 @@ function applyLang() {
   for (const el of document.querySelectorAll('[data-ph]')) el.placeholder = T[lang][el.dataset.ph] || '';
   if (session) $('status').textContent = T[lang].ready;
   if (last) render(last);
+  if (typeof renderInstall === 'function' && installMode) renderInstall();
 }
 $('lang').addEventListener('click', () => {
   lang = lang === 'en' ? 'rw' : 'en';
@@ -296,7 +297,56 @@ $('askBtn').addEventListener('click', () => {
 $('search').addEventListener('input', renderAgros);
 $('share').addEventListener('click', shareAnotherWay);
 
+// ---------- install ----------
+// Shown only to people who have not installed Ijisho. Chrome and Edge give a real install prompt; iPhones and
+// some browsers have none, so the card explains where to tap instead.
+let installPrompt = null;
+let installMode = null; // 'prompt' | 'ios' | 'menu'
+const isInstalled = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isMobile = () => /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+
+function renderInstall() {
+  const t = T[lang];
+  const show = !!installMode && !isInstalled();
+  $('install').hidden = !show;
+  if (!show) return;
+  $('installBtn').textContent = installMode === 'prompt' ? t.installBtn : t.howBtn;
+  $('installBtn').hidden = installMode !== 'prompt' && !$('installSteps').hidden;
+  $('installSteps').textContent = installMode === 'ios' ? t.iosSteps : t.menuSteps;
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); // keep the browser's own mini-bar away; we show our button instead
+  installPrompt = e;
+  installMode = 'prompt';
+  renderInstall();
+});
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  installMode = null;
+  renderInstall();
+});
+$('installBtn').addEventListener('click', async () => {
+  if (installMode === 'prompt' && installPrompt) {
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    installPrompt = null;
+    if (outcome === 'accepted') installMode = null;
+    renderInstall();
+    return;
+  }
+  $('installSteps').hidden = false;
+  renderInstall();
+});
+if (!isInstalled()) {
+  if (isIOS()) installMode = 'ios';
+  // Browsers that support the prompt fire it quickly; on other phones, explain the menu instead.
+  else if (isMobile()) setTimeout(() => { if (!installMode) { installMode = 'menu'; renderInstall(); } }, 4000);
+}
+
 applyLang();
+renderInstall();
 const ready = loadModel().catch((e) => {
   console.error(e);
   $('status').textContent = T[lang].error;

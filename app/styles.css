@@ -87,3 +87,9 @@ footer a { color: var(--ink); }
 .agro-card .btn { min-height: 44px; padding: 8px 14px; font-size: .85rem; flex: none; }
 .ask .note a { color: var(--ink); font-weight: 600; }
 footer .fine a { color: var(--ink); }
+.install { display: grid; grid-template-columns: auto 1fr; gap: .4rem .8rem; align-items: start; margin-top: 1.5rem; padding: .9rem 1rem; border: 1px solid var(--line); border-left: 4px solid var(--accent); background: var(--tint); }
+.install img { border-radius: 50%; }
+.install b { display: block; }
+.install p { margin: .15rem 0 0; font-size: .9rem; color: var(--muted); }
+.install .steps { color: var(--ink); }
+.install .btn { grid-column: 1 / -1; min-height: 44px; }

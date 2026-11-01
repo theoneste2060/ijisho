@@ -58,6 +58,12 @@ export const T = {
     msgPhoto: 'Photo attached.',
     msgAsk: 'Can you confirm and tell me what to do?',
     msgVia: 'Sent from Ijisho',
+    installTitle: 'Install Ijisho',
+    installText: 'Opens like an app and works with no internet.',
+    installBtn: 'Install',
+    howBtn: 'How?',
+    iosSteps: 'On iPhone or iPad: tap the Share button at the bottom of Safari, then choose “Add to Home Screen”.',
+    menuSteps: 'Open your browser menu (⋮) and choose “Install app” or “Add to Home screen”.',
   },
   rw: {
     title: 'Ijisho',
@@ -109,6 +115,12 @@ export const T = {
     msgPhoto: 'Ifoto iri kumwe n’ubu butumwa.',
     msgAsk: 'Wanyemeza ukambwira icyo nakora?',
     msgVia: 'Byoherejwe na Ijisho',
+    installTitle: 'Shyira Ijisho kuri telefoni',
+    installText: 'Rifunguka nka porogaramu kandi rikora nta murandasi.',
+    installBtn: 'Shyiraho',
+    howBtn: 'Gute?',
+    iosSteps: 'Kuri iPhone cyangwa iPad: kanda buto yo Gusangiza (Share) iri hasi muri Safari, hanyuma uhitemo “Add to Home Screen”.',
+    menuSteps: 'Fungura menu ya mushakisha (⋮) maze uhitemo “Install app” cyangwa “Add to Home screen”.',
   },
 };
 
