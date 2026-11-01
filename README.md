@@ -5,6 +5,8 @@ A farmer or extension officer takes a photo of one leaf; Ijisho says whether it 
 **angular leaf spot**, **bean rust**, or **healthy**, and what to do next, in **English or Kinyarwanda**.
 When it isn't confident, it says so and points to a human agronomist instead of guessing.
 
+**Try it: [ijisho-amber.vercel.app](https://ijisho-amber.vercel.app)** · open it once on a phone, then it works with no connection. On Android, use *Add to Home screen* to install it like an app.
+
 <p>
   <img src="docs/screen-home.png" alt="Ijisho home screen with Take a photo and Choose a photo buttons" width="260">
   &nbsp;
@@ -74,7 +76,7 @@ python3 -m venv .venv
 .venv/bin/python training/train.py
 .venv/bin/python training/export.py   # writes app/model/ijisho-beans.onnx
 
-# 2. Serve the app (any static host works)
+# 2. Serve the app (any static host works; the live copy runs on Vercel, see vercel.json)
 cd app && python3 -m http.server 8000
 ```
 

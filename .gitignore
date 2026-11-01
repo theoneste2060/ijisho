@@ -4,3 +4,4 @@ data/*.parquet
 models/*.onnx
 models/*.pt
 .testimgs/
+.vercel
