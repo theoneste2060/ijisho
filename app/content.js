@@ -4,6 +4,13 @@
 
 export const CONFIDENT = 0.7; // below this, Ijisho says it is not sure instead of guessing
 
+// Optional pilot partner (a cooperative, RAB office or NGO). When set, Ijisho offers it as a second
+// "Ask an agronomist" option. Leave as null until there is an agreed partner.
+// Example: { name: 'Kamonyi farmer support', whatsapp: '2507XXXXXXXX' }
+export const PARTNER = null;
+
+export const APP_URL = 'https://ijisho-amber.vercel.app';
+
 export const T = {
   en: {
     title: 'Ijisho',
@@ -27,6 +34,29 @@ export const T = {
     credits: 'Model trained on field photos from the Makerere AI Lab and NaCRRI (MIT licence).',
     lang: 'Ikinyarwanda',
     error: 'Could not read this photo. Try another one.',
+    askTitle: 'Want a second opinion?',
+    askText: 'Send this photo and result to your agronomist or farmer promoter.',
+    ask: 'Ask an agronomist',
+    askSaved: 'WhatsApp {name}',
+    askSavedNote: 'Opens a chat with {name}. Attach the leaf photo there.',
+    save: 'Save my agronomist’s number',
+    change: 'Change',
+    remove: 'Remove',
+    nameLabel: 'Name',
+    namePlaceholder: 'e.g. Jean, farmer promoter',
+    phoneLabel: 'WhatsApp number',
+    phonePlaceholder: '07X XXX XXXX',
+    saveBtn: 'Save',
+    cancel: 'Cancel',
+    savedNote: 'Saved only on this phone.',
+    badPhone: 'Enter a number like 078 123 4567 or +250 78 123 4567.',
+    shared: 'Choose your agronomist in the app that opened.',
+    msgIntro: 'Ijisho bean leaf check',
+    msgResult: 'Result',
+    msgUnsure: 'Ijisho was not sure',
+    msgAsk: 'Can you confirm and tell me what to do?',
+    msgPhoto: 'Photo attached.',
+    msgVia: 'Sent from Ijisho',
   },
   rw: {
     title: 'Ijisho',
@@ -50,6 +80,29 @@ export const T = {
     credits: 'Ryatojwe ku mafoto yafatiwe mu mirima na Makerere AI Lab na NaCRRI (uruhushya rwa MIT).',
     lang: 'English',
     error: 'Iyi foto ntiyasomwe. Gerageza indi.',
+    askTitle: 'Urashaka ikindi gitekerezo?',
+    askText: 'Oherereza iyi foto n’igisubizo umujyanama w’ubuhinzi cyangwa umufashamyumvire w’abahinzi.',
+    ask: 'Baza umujyanama',
+    askSaved: 'WhatsApp {name}',
+    askSavedNote: 'Bifungura ikiganiro na {name}. Ongeraho ifoto y’ikibabi aho.',
+    save: 'Bika nimero y’umujyanama wanjye',
+    change: 'Hindura',
+    remove: 'Siba',
+    nameLabel: 'Izina',
+    namePlaceholder: 'urugero: Jean, umufashamyumvire',
+    phoneLabel: 'Nimero ya WhatsApp',
+    phonePlaceholder: '07X XXX XXXX',
+    saveBtn: 'Bika',
+    cancel: 'Reka',
+    savedNote: 'Ibikwa kuri iyi telefoni gusa.',
+    badPhone: 'Andika nimero nka 078 123 4567 cyangwa +250 78 123 4567.',
+    shared: 'Hitamo umujyanama wawe muri porogaramu ifunguye.',
+    msgIntro: 'Isuzuma rya Ijisho ku kibabi cy’igishyimbo',
+    msgResult: 'Igisubizo',
+    msgUnsure: 'Ijisho ntiryari ryizeye',
+    msgAsk: 'Wanyemeza ukambwira icyo nakora?',
+    msgPhoto: 'Ifoto iri kumwe n’ubu butumwa.',
+    msgVia: 'Byoherejwe na Ijisho',
   },
 };
 

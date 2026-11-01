@@ -39,6 +39,7 @@ food and a key protein source across East Africa.
 | Runtime | [ONNX Runtime Web](https://onnxruntime.ai/) (WebAssembly) in the browser; the photo never leaves the phone |
 | App | A static Progressive Web App; a service worker caches everything on first visit, then it works offline |
 | Uncertainty | Below 70% confidence, Ijisho answers "not sure" and gives retake tips plus a pointer to an agronomist |
+| Ask an agronomist | Under every result: opens the phone's share menu with a small copy of the photo (long side 1,280 px) and a pre-written message, so the farmer sends it to their own extension officer or farmer promoter on WhatsApp or SMS. The farmer can save that person's WhatsApp number once (stored only on the phone) for a one-tap chat. No server: the photo only goes where the farmer sends it. A pilot partner number can be set in `app/content.js` (`PARTNER`) |
 
 ## Results
 
@@ -100,7 +101,6 @@ Open http://localhost:8000 on a phone or desktop. After the first load it works 
 
 - Rwandan field photos and validation with agronomists
 - More bean diseases, then cassava and potato
-- A "send to my extension officer" button (WhatsApp/SMS) for unsure cases
 - Voice output in Kinyarwanda for low-literacy users
 - Android packaging for phones that can't install web apps
 

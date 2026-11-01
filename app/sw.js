@@ -1,6 +1,6 @@
 // Caches everything on first visit so Ijisho works with no connection afterwards.
 // Bump VERSION whenever any cached file changes.
-const VERSION = 'ijisho-v2';
+const VERSION = 'ijisho-v3';
 const FILES = [
   './',
   'index.html',
